@@ -3,7 +3,7 @@ import axios from 'axios';
 import { configUrls } from './config';
 
 const api = axios.create({
-	baseURL: configUrls?.local, // Replace with your API base URL
+	baseURL: configUrls?.live, // Replace with your API base URL
 	timeout: 10000,
 	headers: {
 		'Content-Type': 'application/json',
