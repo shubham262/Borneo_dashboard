@@ -4,6 +4,10 @@ const actionHandlers = {
 		...state,
 		files: action.payload,
 	}),
+	FETCH_SEARCH_RESULTS_SUCCESS: (state, action) => ({
+		...state,
+		searchResults: action.payload,
+	}),
 	RESET_STATE: () => ({ ...intialState }),
 };
 

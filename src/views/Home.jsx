@@ -7,7 +7,12 @@ import { Spin } from 'antd';
 const Home = () => {
 	const navigate = useNavigate();
 	const {
-		dashboardInfo: { fetchAllDocuments, files },
+		dashboardInfo: {
+			fetchAllDocuments,
+			files,
+			searchContent,
+			searchResults,
+		},
 	} = useContext(Context);
 
 	const [info, setInfo] = useState({
@@ -40,10 +45,24 @@ const Home = () => {
 	}, [files]);
 
 	useEffect(() => {
-		if (info?.searchChanged) {
-			handleDebounce();
+		if (searchResults) {
+			const filesdata = [];
+			for (let i = 0; i < searchResults.length; i++) {
+				filesdata?.push(JSON.parse(searchResults?.[i]?.fileData));
+			}
+			setInfo((prevInfo) => ({
+				...prevInfo,
+				filesdata,
+				loading: false,
+			}));
 		}
-	}, [info?.search, info?.searchChanged]);
+	}, [searchResults]);
+
+	useEffect(() => {
+		if (info?.searchChanged) {
+			handleDebounce(info?.search);
+		}
+	}, [info?.search, info?.searchChanged, files]);
 
 	//function definations
 	const formatSize = useCallback((size) => {
@@ -52,15 +71,29 @@ const Home = () => {
 		return `${(size / (1024 * 1024)).toFixed(2)} MB`;
 	}, []);
 
-	const handleDebounce = useCallback(() => {
-		clearTimeout(info?.timeout);
-		const timeout = setTimeout(() => {
-			// Search for files when debounced
+	const handleDebounce = useCallback(
+		(search) => {
+			clearTimeout(info?.timeout);
+			const timeout = setTimeout(() => {
+				// Search for files when debounced
 
-			setInfo((prev) => ({ ...prev, timeout: null }));
-		}, 500);
-		setInfo((prev) => ({ ...prev, timeout }));
-	}, [info?.timeout]);
+				setInfo((prev) => ({ ...prev, loading: true }));
+				if (search?.length) {
+					searchContent(search);
+				} else {
+					fetchAllDocuments();
+					setInfo((prev) => ({
+						...prev,
+						searchChanged: false,
+					}));
+				}
+
+				setInfo((prev) => ({ ...prev, timeout: null }));
+			}, 500);
+			setInfo((prev) => ({ ...prev, timeout }));
+		},
+		[info?.timeout, files]
+	);
 
 	return (
 		<div className="app-container">

@@ -6,6 +6,7 @@ import { type } from '@testing-library/user-event/dist/type';
 
 export const intialState = {
 	files: null,
+	searchResults: null,
 };
 
 export const DashboardState = (props) => {
@@ -34,9 +35,26 @@ export const DashboardState = (props) => {
 		}
 	};
 
+	const searchContent = async (query) => {
+		try {
+			const response = await api.get(
+				`/dropbox-seacrch-documents?query=${query}`
+			);
+			const { data } = response?.data;
+
+			dispatch({
+				type: Actions.FETCH_SEARCH_RESULTS_SUCCESS,
+				payload: data,
+			});
+		} catch (error) {
+			console.log('error==>searchContent', error);
+		}
+	};
+
 	return {
 		...state,
 		authenticateUsingDropBox,
 		fetchAllDocuments,
+		searchContent,
 	};
 };
