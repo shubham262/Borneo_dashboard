@@ -2,7 +2,8 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Context from '../context/context';
 import '../assets/scss/home.scss';
-import { Spin } from 'antd';
+import { message, Spin } from 'antd';
+import { checkUserTokenExpiry } from '../helper';
 
 const Home = () => {
 	const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Home = () => {
 			// Redirect to login page if no token is found
 			return navigate('/');
 		}
-		fetchAllDocuments();
+		executeFunctionCallWithTokenCheck(fetchAllDocuments);
 	}, []);
 
 	useEffect(() => {
@@ -79,9 +80,10 @@ const Home = () => {
 
 				setInfo((prev) => ({ ...prev, loading: true }));
 				if (search?.length) {
-					searchContent(search);
+					executeFunctionCallWithTokenCheck(searchContent, search);
 				} else {
-					fetchAllDocuments();
+					executeFunctionCallWithTokenCheck(fetchAllDocuments);
+
 					setInfo((prev) => ({
 						...prev,
 						searchChanged: false,
@@ -94,6 +96,18 @@ const Home = () => {
 		},
 		[info?.timeout, files]
 	);
+
+	const executeFunctionCallWithTokenCheck = useCallback((func, args) => {
+		const checkAuth = checkUserTokenExpiry();
+		if (checkAuth) {
+			func(args);
+		} else {
+			message.error('Drop boc token got expired');
+			message.loading('Redirecting to login Page', 3);
+			localStorage.clear();
+			navigate('/');
+		}
+	}, []);
 
 	return (
 		<div className="app-container">
